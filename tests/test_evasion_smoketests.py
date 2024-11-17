@@ -25,10 +25,10 @@ async def test_chrome_load_times(hooked_async_page):
     a = await hooked_async_page.evaluate("window.chrome.loadTimes")
 
 
-async def test_chrome_runtime():
+async def test_chrome_runtime(playwright_ca_config_kwarg):
     # disabled by default
     async with Stealth(chrome_runtime=True).use_async(async_playwright()) as p:
-        page = await (await p.chromium.launch()).new_page()
+        page = await (await p.chromium.launch()).new_page(**playwright_ca_config_kwarg)
         await page.goto("https://example.org")
         a = await page.evaluate("window.chrome.runtime")
 

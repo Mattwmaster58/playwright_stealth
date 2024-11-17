@@ -6,12 +6,12 @@ from playwright_stealth.stealth import Stealth, ALL_EVASIONS_DISABLED_KWARGS
 
 
 @pytest.mark.parametrize("browser_type", ["chromium", "firefox"])
-async def test_async_smoketest(browser_type: str):
+async def test_async_smoketest(browser_type: str, empty_httpserver, playwright_ca_config_kwarg):
     # we test this because exceptions won't propagate with page.add_init_scripts, but will with page.evaluate
     async with async_playwright() as p:
-        browser = await getattr(p, browser_type).launch()
-        page = await browser.new_page()
-        await page.goto("http://example.org")
+        browser = await getattr(p, browser_type).launch(devtools=True)
+        page = await browser.new_page(**playwright_ca_config_kwarg)
+        await page.goto(empty_httpserver.url_for("/"))
         await page.evaluate(Stealth().script_payload)
 
 
