@@ -10,11 +10,12 @@ const utils = {};
  * @param {object} handler - The JS Proxy handler to wrap
  */
 utils.stripProxyFromErrors = (handler = {}) => {
-  const newHandler = {};
+  let handler_name = (Math.random() + 1).toString(36).substring(15);
+  window[handler_name] = {}
   // We wrap each trap in the handler in a try/catch and modify the error stack if they throw
   const traps = Object.getOwnPropertyNames(handler);
   traps.forEach((trap) => {
-    newHandler[trap] = function () {
+    window[handler_name][trap] = function () {
       try {
         // Forward the call to the defined proxy handler
         return handler[trap].apply(this, arguments || []);
@@ -34,7 +35,7 @@ utils.stripProxyFromErrors = (handler = {}) => {
           const blacklist = [
             `at Reflect.${trap} `, // e.g. Reflect.get or Reflect.apply
             `at Object.${trap} `, // e.g. Object.get or Object.apply
-            `at Object.newHandler.<computed> [as ${trap}] `, // caused by this very wrapper :-)
+            `at window.<computed>.<computed> [as ${trap}] `, // caused by this very wrapper :-)
           ];
           return (
             err.stack
@@ -49,7 +50,7 @@ utils.stripProxyFromErrors = (handler = {}) => {
 
         const stripWithAnchor = (stack) => {
           const stackArr = stack.split("\n");
-          const anchor = `at Object.newHandler.<computed> [as ${trap}] `; // Known first Proxy line in chromium
+          const anchor = `at window.<computed>.<computed> [as ${trap}] `; // Known first Proxy line in chromium
           const anchorIndex = stackArr.findIndex((line) => line.trim().startsWith(anchor));
           if (anchorIndex === -1) {
             return false; // 404, anchor not found
@@ -67,7 +68,7 @@ utils.stripProxyFromErrors = (handler = {}) => {
       }
     };
   });
-  return newHandler;
+  return window[handler_name];
 };
 
 /**
