@@ -3,6 +3,17 @@
  */
 const utils = {};
 
+/** Notes
+ * It is possible to trigger a call to Error.prototype.name with
+ * const e = new Error()
+ * console.debug(e)
+ */
+
+Object.defineProperty(Error.prototype, 'name', {
+          configurable: false,
+          enumerable: false,
+          });
+
 /**
  * Wraps a JS Proxy Handler and strips it's presence from error stacks, in case the traps throw.
  * The presence of a JS Proxy can be revealed as it shows up in error stack traces.
