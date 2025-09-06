@@ -14,8 +14,12 @@ async def test_cli_args_are_patched_correctly(browser_type: str):
         console_messages = await collect_log_messages(page)
 
         await page.goto("http://example.org")
-        webdriver_js_was_patched = not any(map(lambda x: "not patching navigator.webdriver" in x, console_messages))
-        languages_js_was_patched = not any(map(lambda x: "not patching navigator.languages" in x, console_messages))
+        webdriver_js_was_patched = not any(
+            map(lambda x: "not patching navigator.webdriver" in x, console_messages)
+        )
+        languages_js_was_patched = not any(
+            map(lambda x: "not patching navigator.languages" in x, console_messages)
+        )
         # iff browser is chromium, we should patch the CLI args
         if browser_type == "chromium":
             assert not webdriver_js_was_patched, console_messages
@@ -27,12 +31,16 @@ async def test_cli_args_are_patched_correctly(browser_type: str):
 
 async def test_init_scripts_respected():
     # only chromium cli args are instrumented, so no need to check other browsers
-    config = Stealth(init_scripts_only=True, navigator_languages_override=("fr-CA", "fr"))
+    config = Stealth(
+        init_scripts_only=True, navigator_languages_override=("fr-CA", "fr")
+    )
     async with config.use_async(async_playwright()) as ctx:
         browser = await ctx.chromium.launch()
         page = await browser.new_page()
         console_messages = await collect_log_messages(page)
-        languages_js_was_patched = not any(map(lambda x: "not patching navigator.languages" in x, console_messages))
+        languages_js_was_patched = not any(
+            map(lambda x: "not patching navigator.languages" in x, console_messages)
+        )
         assert languages_js_was_patched
 
 

@@ -1,4 +1,3 @@
-import playwright
 from playwright.async_api import async_playwright
 
 from playwright_stealth import Stealth
@@ -45,7 +44,9 @@ async def test_iframe_contentWindow(hooked_async_page):
 
 async def test_media_codecs(hooked_async_page):
     await hooked_async_page.goto("http://example.org")
-    a = await hooked_async_page.evaluate("document.createElement('video').canPlayType('audio/x-m4a')")
+    a = await hooked_async_page.evaluate(
+        "document.createElement('video').canPlayType('audio/x-m4a')"
+    )
 
 
 async def test_navigator_hardwareConcurrency(hooked_async_page):
