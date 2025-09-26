@@ -40,6 +40,7 @@ SCRIPTS: Dict[str, str] = {
     "navigator_user_agent": from_file("evasions/navigator.userAgent.js"),
     "navigator_vendor": from_file("evasions/navigator.vendor.js"),
     "navigator_webdriver": from_file("evasions/navigator.webdriver.js"),
+    "error_prototype": from_file("evasions/error.prototype.js"),
     "webgl_vendor": from_file("evasions/webgl.vendor.js"),
 }
 
@@ -83,6 +84,7 @@ class Stealth:
         navigator_user_agent: bool = True,
         navigator_vendor: bool = True,
         navigator_webdriver: bool = True,
+        error_prototype: bool = True,
         sec_ch_ua: bool = True,
         webgl_vendor: bool = True,
         navigator_languages_override: Tuple[str, str] = ("en-US", "en"),
@@ -111,6 +113,7 @@ class Stealth:
         self.navigator_user_agent: bool = navigator_user_agent
         self.navigator_vendor: bool = navigator_vendor
         self.navigator_webdriver: bool = navigator_webdriver
+        self.error_prototype: bool = error_prototype
         self.sec_ch_ua: bool = sec_ch_ua
         self.webgl_vendor: bool = webgl_vendor
 
@@ -198,6 +201,8 @@ class Stealth:
             yield SCRIPTS["navigator_vendor"]
         if self.navigator_webdriver:
             yield SCRIPTS["navigator_webdriver"]
+        if self.error_prototype:
+            yield SCRIPTS["error_prototype"]
         if self.webgl_vendor:
             yield SCRIPTS["webgl_vendor"]
 
@@ -541,6 +546,7 @@ ALL_EVASIONS_DISABLED_KWARGS = {
     "navigator_user_agent": False,
     "navigator_vendor": False,
     "navigator_webdriver": False,
+    "error_prototype": False,
     "sec_ch_ua": False,
     "webgl_vendor": False,
 }
