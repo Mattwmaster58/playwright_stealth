@@ -1,34 +1,40 @@
-[tool.poetry]
+[project]
 name = "playwright-stealth"
 version = "2.0.0"
 description = "Make your playwright instance stealthy"
 authors = [
-    "AtuboDad <lcjasas@sina.com>",
-    "Mattwmaster58 <mattwmaster58@gmail.com>"
-]
-classifiers = [
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
+    {name="AtuboDad", email="lcjasas@sina.com"},
+    {name="Mattwmaster58", email="mattwmaster58@gmail.com>"}
 ]
 license = "MIT"
 readme = "README.md"
+requires-python = ">=3.9"
+
+dependencies = [
+    "playwright (>=1.55.0)"
+]
+
+dynamic = [ "classifiers" ]
+
+[tool.poetry]
+classifiers = [
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
 
 [project.urls]
 homepage = "https://github.com/Mattwmaster58/playwright_stealth"
 changelog = "https://github.com/Mattwmaster58/playwright_stealth/raw/main/CHANGELOG.md"
 
-[tool.poetry.dependencies]
-python = "^3.9"
-playwright = "^1.0.0"
-black = "^25.1.0"
+[project.optional-dependencies]
+black = ["black >= 25.9.0"]
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.4.0"
-pytest-asyncio = "^1.0.0"
+pytest = "^8.4.2"
+pytest-asyncio = "^1.2.0"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
