@@ -11,7 +11,9 @@ browser_types = ["chromium", "firefox"]
 
 @pytest.fixture(params=browser_types)
 async def hooked_async_browser(request) -> async_api.Browser:
-    async with Stealth(script_logging=script_logging).use_async(async_playwright()) as ctx:
+    async with Stealth(script_logging=script_logging).use_async(
+        async_playwright()
+    ) as ctx:
         browser = await ctx[request.param].launch()
         yield browser
 

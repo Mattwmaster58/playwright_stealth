@@ -25,13 +25,19 @@ def test_sync_smoketest(browser_type: str):
 
 
 async def test_async_navigator_webdriver_smoketest(hooked_async_browser):
-    for page in [await hooked_async_browser.new_page(), await (await hooked_async_browser.new_context()).new_page()]:
+    for page in [
+        await hooked_async_browser.new_page(),
+        await (await hooked_async_browser.new_context()).new_page(),
+    ]:
         await page.goto("http://example.org")
         assert await page.evaluate("navigator.webdriver") is False
 
 
 def test_sync_navigator_webdriver_smoketest(hooked_sync_browser):
-    for page in [hooked_sync_browser.new_page(), hooked_sync_browser.new_context().new_page()]:
+    for page in [
+        hooked_sync_browser.new_page(),
+        hooked_sync_browser.new_context().new_page(),
+    ]:
         page.goto("http://example.org")
         assert page.evaluate("navigator.webdriver") is False
 

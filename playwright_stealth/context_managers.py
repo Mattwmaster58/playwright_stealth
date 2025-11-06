@@ -1,4 +1,11 @@
+from typing import TYPE_CHECKING
+
 from playwright import async_api, sync_api
+
+if TYPE_CHECKING:
+    from .stealth import Stealth
+
+# pyright: reportPrivateImportUsage=false
 
 
 class AsyncWrappingContextManager:
@@ -35,3 +42,6 @@ class SyncWrappingContextManager:
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.manager.__exit__(exc_type, exc_val, exc_tb)
+
+
+__all__ = ["AsyncWrappingContextManager", "SyncWrappingContextManager"]
