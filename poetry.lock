@@ -441,4 +441,4 @@ black = ["black"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9"
-content-hash = "45cc847e844985cb13cab406555052ef691c98487525edbcc9d90959fa459a3e"
+content-hash = "806c66169b81043f4b1d354614f2d29050ab054333f25851507a02c61c2e4248"
