@@ -65,6 +65,7 @@ class Stealth:
 
     _USER_AGENT_OVERRIDE_PIGGYBACK_KEY = "_stealth_user_agent"
     _SEC_CH_UA_OVERRIDE_PIGGYBACK_KEY = "_stealth_sec_ch_ua"
+    _STEALTH_APPLIED_KEY = "_playwright_stealth_applied"
 
     def __init__(
         self,
@@ -206,6 +207,14 @@ class Stealth:
         if self.webgl_vendor:
             yield SCRIPTS["webgl_vendor"]
 
+    def warn_if_stealth_applied(self, obj: Any) -> bool:
+        if hasattr(obj, self._STEALTH_APPLIED_KEY):
+            warnings.warn(
+                "Stealth has already been applied to this page or context. Skipping duplicate application.",
+            )
+            return True
+        return False
+
     def use_async(self, ctx: async_api.PlaywrightContextManager) -> AsyncWrappingContextManager:
         """
         Instruments the playwright context manager.
@@ -229,12 +238,14 @@ class Stealth:
         return SyncWrappingContextManager(self, ctx)
 
     async def apply_stealth_async(self, page_or_context: Union[async_api.Page, async_api.BrowserContext]) -> None:
-        if len(self.script_payload) > 0:
+        if len(self.script_payload) > 0 and not self.warn_if_stealth_applied(page_or_context):
             await page_or_context.add_init_script(self.script_payload)
+            setattr(page_or_context, self._STEALTH_APPLIED_KEY, True)
 
     def apply_stealth_sync(self, page_or_context: Union[sync_api.Page, sync_api.BrowserContext]) -> None:
-        if len(self.script_payload) > 0:
+        if len(self.script_payload) > 0 and not self.warn_if_stealth_applied(page_or_context):
             page_or_context.add_init_script(self.script_payload)
+            setattr(page_or_context, self._STEALTH_APPLIED_KEY, True)
 
     def hook_playwright_context(self, ctx: Union[async_api.Playwright, sync_api.Playwright]) -> None:
         """
@@ -293,14 +304,16 @@ class Stealth:
     def _generate_hooked_new_context(self, new_context_method: Callable, new_page_method: Callable) -> Callable:
         async def hooked_new_context_async(*args, **kwargs):
             context = await new_context_method(
-                *args, **(await self._kwargs_new_page_context_with_patches_async(new_page_method, kwargs))
+                *args,
+                **(await self._kwargs_new_page_context_with_patches_async(new_page_method, kwargs)),
             )
             await self.apply_stealth_async(context)
             return context
 
         def hooked_browser_method_sync(*args, **kwargs):
             context = new_context_method(
-                *args, **(self._kwargs_new_page_context_with_patches_sync(new_page_method, kwargs))
+                *args,
+                **(self._kwargs_new_page_context_with_patches_sync(new_page_method, kwargs)),
             )
             self.apply_stealth_sync(context)
             return context
@@ -376,7 +389,11 @@ class Stealth:
                 await temp_page.close(reason="playwright_stealth internal temp utility page")
                 sec_ch_ua = self._get_greased_chrome_sec_ua_ch(stealth_user_agent)
                 setattr(browser_instance, self._SEC_CH_UA_OVERRIDE_PIGGYBACK_KEY, sec_ch_ua)
-                setattr(browser_instance, self._USER_AGENT_OVERRIDE_PIGGYBACK_KEY, stealth_user_agent)
+                setattr(
+                    browser_instance,
+                    self._USER_AGENT_OVERRIDE_PIGGYBACK_KEY,
+                    stealth_user_agent,
+                )
             return stealth_user_agent, sec_ch_ua
 
         new_kwargs = deepcopy(packed_kwargs)
@@ -417,7 +434,11 @@ class Stealth:
                 sec_ch_ua = self._get_greased_chrome_sec_ua_ch(stealth_user_agent)
                 temp_page.close(reason="playwright_stealth internal temp utility page")
                 setattr(browser_instance, self._SEC_CH_UA_OVERRIDE_PIGGYBACK_KEY, sec_ch_ua)
-                setattr(browser_instance, self._USER_AGENT_OVERRIDE_PIGGYBACK_KEY, stealth_user_agent)
+                setattr(
+                    browser_instance,
+                    self._USER_AGENT_OVERRIDE_PIGGYBACK_KEY,
+                    stealth_user_agent,
+                )
             return stealth_user_agent, sec_ch_ua
 
         new_kwargs = deepcopy(packed_kwargs)

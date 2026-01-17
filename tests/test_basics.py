@@ -1,5 +1,5 @@
 import pytest
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, Page
 from playwright.sync_api import sync_playwright
 
 from playwright_stealth.stealth import Stealth, ALL_EVASIONS_DISABLED_KWARGS
@@ -25,13 +25,19 @@ def test_sync_smoketest(browser_type: str):
 
 
 async def test_async_navigator_webdriver_smoketest(hooked_async_browser):
-    for page in [await hooked_async_browser.new_page(), await (await hooked_async_browser.new_context()).new_page()]:
+    for page in [
+        await hooked_async_browser.new_page(),
+        await (await hooked_async_browser.new_context()).new_page(),
+    ]:
         await page.goto("http://example.org")
         assert await page.evaluate("navigator.webdriver") is False
 
 
 def test_sync_navigator_webdriver_smoketest(hooked_sync_browser):
-    for page in [hooked_sync_browser.new_page(), hooked_sync_browser.new_context().new_page()]:
+    for page in [
+        hooked_sync_browser.new_page(),
+        hooked_sync_browser.new_context().new_page(),
+    ]:
         page.goto("http://example.org")
         assert page.evaluate("navigator.webdriver") is False
 
@@ -51,3 +57,46 @@ def test_empty_payload_not_injected():
     # noinspection PyTypeChecker
     Stealth(**ALL_EVASIONS_DISABLED_KWARGS).apply_stealth_sync(MockBrowser())
     assert not init_script_added
+
+
+def test_duplicate_apply_stealth_sync_warns():
+    class MockPage:
+        def __init__(self):
+            self.call_count = 0
+
+        def add_init_script(self, *args, **kwargs):
+            self.call_count += 1
+
+    stealth = Stealth()
+    mock_page = MockPage()
+
+    # noinspection PyTypeChecker
+    stealth.apply_stealth_sync(mock_page)
+    assert mock_page.call_count == 1
+
+    with pytest.warns(UserWarning, match="Stealth has already been applied"):
+        # noinspection PyTypeChecker
+        stealth.apply_stealth_sync(mock_page)
+
+    assert mock_page.call_count == 1
+
+
+async def test_duplicate_apply_stealth_async_warns():
+    class MockPage:
+        def __init__(self):
+            self.call_count = 0
+
+        async def add_init_script(self, *args, **kwargs):
+            self.call_count += 1
+
+    mock_page = MockPage()
+    stealth = Stealth()
+    # noinspection PyTypeChecker
+    await stealth.apply_stealth_async(mock_page)
+    assert mock_page.call_count == 1
+
+    with pytest.warns(UserWarning, match="Stealth has already been applied"):
+        # noinspection PyTypeChecker
+        await stealth.apply_stealth_async(mock_page)
+
+    assert mock_page.call_count == 1
