@@ -15,8 +15,11 @@ class AsyncWrappingContextManager:
         self.stealth.hook_playwright_context(context)
         return context
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
-        await self.manager.__aexit__(exc_type, exc_val, exc_tb)
+    async def start(self):
+        return await self.__aenter__()
+
+    async def __aexit__(self, *args) -> None:
+        await self.manager.__aexit__(*args)
 
 
 class SyncWrappingContextManager:
@@ -33,5 +36,8 @@ class SyncWrappingContextManager:
         self.stealth.hook_playwright_context(context)
         return context
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        self.manager.__exit__(exc_type, exc_val, exc_tb)
+    def start(self):
+        return self.__enter__()
+
+    def __exit__(self, *args) -> None:
+        self.manager.__exit__(*args)
