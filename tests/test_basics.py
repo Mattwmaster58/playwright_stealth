@@ -42,10 +42,12 @@ def test_sync_navigator_webdriver_smoketest(hooked_sync_browser):
         assert page.evaluate("navigator.webdriver") is False
 
 
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_payload_is_empty_when_no_evasions_active():
     assert len(Stealth(**ALL_EVASIONS_DISABLED_KWARGS).script_payload) == 0
 
 
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_empty_payload_not_injected():
     init_script_added = False
 

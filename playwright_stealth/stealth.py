@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Dict, List, Union, Any, Tuple, Optional
 
 from playwright import async_api, sync_api
-
 from playwright_stealth.case_insensitive_dict import CaseInsensitiveDict
 from playwright_stealth.context_managers import (
     AsyncWrappingContextManager,
@@ -211,6 +210,7 @@ class Stealth:
         if hasattr(obj, self._STEALTH_APPLIED_KEY):
             warnings.warn(
                 "Stealth has already been applied to this page or context. Skipping duplicate application.",
+                category=UserWarning,
             )
             return True
         return False
@@ -529,7 +529,8 @@ class Stealth:
                 warnings.warn(
                     "playwright-stealth is trying to modify a flag you have set yourself already."
                     f"Either disable the mitigation or don't specify this flag manually {flag=}"
-                    f"to avoid this warning. playwright-stealth has overridden your flag"
+                    f"to avoid this warning. playwright-stealth has overridden your flag",
+                    category=UserWarning,
                 )
                 new_args.append(flag)
                 break
@@ -548,6 +549,7 @@ class Stealth:
                     f"{key} is False, but an override ({key}_override) was provided, "
                     f"which is probably not what you intended to do",
                     stacklevel=3,
+                    category=UserWarning,
                 )
 
 
