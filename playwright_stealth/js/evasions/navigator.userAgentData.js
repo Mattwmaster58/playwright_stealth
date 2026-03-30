@@ -14,27 +14,27 @@ if (originalUserAgentData) {
 
   const filteredBrands = filterBrandList(originalUserAgentData.brands);
 
-  const fakeUserAgentData = {
-    brands: filteredBrands,
-    mobile: originalUserAgentData.mobile,
-    platform: originalUserAgentData.platform,
+  const fakeUserAgentData = Object.create(Object.getPrototypeOf(originalUserAgentData), {
+    brands: { get: () => filteredBrands, enumerable: true, configurable: true },
+    mobile: { get: () => originalUserAgentData.mobile, enumerable: true, configurable: true },
+    platform: { get: () => originalUserAgentData.platform, enumerable: true, configurable: true },
+  });
 
-    getHighEntropyValues: function (hints) {
-      return originalUserAgentData.getHighEntropyValues(hints).then((data) => {
-        const newData = { ...data };
-        if (newData.brands) newData.brands = filterBrandList(newData.brands);
-        if (newData.fullVersionList) newData.fullVersionList = filterBrandList(newData.fullVersionList);
-        return newData;
-      });
-    },
+  fakeUserAgentData.getHighEntropyValues = function (hints) {
+    return originalUserAgentData.getHighEntropyValues(hints).then((data) => {
+      const newData = { ...data };
+      if (newData.brands) newData.brands = filterBrandList(newData.brands);
+      if (newData.fullVersionList) newData.fullVersionList = filterBrandList(newData.fullVersionList);
+      return newData;
+    });
+  };
 
-    toJSON: function () {
-      return {
-        brands: filteredBrands,
-        mobile: originalUserAgentData.mobile,
-        platform: originalUserAgentData.platform,
-      };
-    },
+  fakeUserAgentData.toJSON = function () {
+    return {
+      brands: filteredBrands,
+      mobile: originalUserAgentData.mobile,
+      platform: originalUserAgentData.platform,
+    };
   };
 
   // Since userAgentData is a complex object, it may not be specified by opts
