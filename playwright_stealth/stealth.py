@@ -37,6 +37,7 @@ SCRIPTS: Dict[str, str] = {
     "navigator_platform": from_file("evasions/navigator.platform.js"),
     "navigator_plugins": from_file("evasions/navigator.plugins.js"),
     "navigator_user_agent": from_file("evasions/navigator.userAgent.js"),
+    "navigator_user_agent_data": from_file("evasions/navigator.userAgentData.js"),
     "navigator_vendor": from_file("evasions/navigator.vendor.js"),
     "navigator_webdriver": from_file("evasions/navigator.webdriver.js"),
     "error_prototype": from_file("evasions/error.prototype.js"),
@@ -82,6 +83,7 @@ class Stealth:
         navigator_platform: bool = True,
         navigator_plugins: bool = True,
         navigator_user_agent: bool = True,
+        navigator_user_agent_data: bool = True,
         navigator_vendor: bool = True,
         navigator_webdriver: bool = True,
         error_prototype: bool = True,
@@ -111,6 +113,7 @@ class Stealth:
         self.navigator_platform: bool = navigator_platform
         self.navigator_plugins: bool = navigator_plugins
         self.navigator_user_agent: bool = navigator_user_agent
+        self.navigator_user_agent_data: bool = navigator_user_agent_data
         self.navigator_vendor: bool = navigator_vendor
         self.navigator_webdriver: bool = navigator_webdriver
         self.error_prototype: bool = error_prototype
@@ -197,6 +200,8 @@ class Stealth:
             yield SCRIPTS["navigator_plugins"]
         if self.navigator_user_agent:
             yield SCRIPTS["navigator_user_agent"]
+        if self.navigator_user_agent_data:
+            yield SCRIPTS["navigator_user_agent_data"]
         if self.navigator_vendor:
             yield SCRIPTS["navigator_vendor"]
         if self.navigator_webdriver:
@@ -567,6 +572,7 @@ ALL_EVASIONS_DISABLED_KWARGS = {
     "navigator_platform": False,
     "navigator_plugins": False,
     "navigator_user_agent": False,
+    "navigator_user_agent_data": False,
     "navigator_vendor": False,
     "navigator_webdriver": False,
     "error_prototype": False,
