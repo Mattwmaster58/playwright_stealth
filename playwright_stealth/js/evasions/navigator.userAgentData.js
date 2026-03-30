@@ -12,16 +12,14 @@ if (originalUserAgentData) {
         : b
     );
 
-  const filteredBrands = filterBrandList(originalUserAgentData.brands);
+  // Store original prototype methods before patching
+  const NavigatorUADataProto = Object.getPrototypeOf(originalUserAgentData);
+  const originalGetHighEntropyValues = NavigatorUADataProto.getHighEntropyValues;
+  const originalToJSON = NavigatorUADataProto.toJSON;
 
-  const fakeUserAgentData = Object.create(Object.getPrototypeOf(originalUserAgentData), {
-    brands: { get: () => filteredBrands, enumerable: true, configurable: true },
-    mobile: { get: () => originalUserAgentData.mobile, enumerable: true, configurable: true },
-    platform: { get: () => originalUserAgentData.platform, enumerable: true, configurable: true },
-  });
-
-  fakeUserAgentData.getHighEntropyValues = function (hints) {
-    return originalUserAgentData.getHighEntropyValues(hints).then((data) => {
+  // Patch getHighEntropyValues on the prototype
+  NavigatorUADataProto.getHighEntropyValues = function (hints) {
+    return originalGetHighEntropyValues.call(this, hints).then((data) => {
       const newData = { ...data };
       if (newData.brands) newData.brands = filterBrandList(newData.brands);
       if (newData.fullVersionList) newData.fullVersionList = filterBrandList(newData.fullVersionList);
@@ -29,16 +27,30 @@ if (originalUserAgentData) {
     });
   };
 
-  fakeUserAgentData.toJSON = function () {
+  // Patch toJSON on the prototype
+  NavigatorUADataProto.toJSON = function () {
+    const data = originalToJSON.call(this);
     return {
-      brands: filteredBrands,
-      mobile: originalUserAgentData.mobile,
-      platform: originalUserAgentData.platform,
+      brands: filterBrandList(data.brands),
+      mobile: data.mobile,
+      platform: data.platform,
     };
   };
 
+  // Override the brands getter on the prototype to filter HeadlessChrome
+  const originalBrandsDescriptor = Object.getOwnPropertyDescriptor(NavigatorUADataProto, "brands");
+  if (originalBrandsDescriptor) {
+    Object.defineProperty(NavigatorUADataProto, "brands", {
+      get() {
+        return filterBrandList(originalBrandsDescriptor.get.call(this));
+      },
+      enumerable: originalBrandsDescriptor.enumerable,
+      configurable: originalBrandsDescriptor.configurable,
+    });
+  }
+
   // Since userAgentData is a complex object, it may not be specified by opts
   utils.replaceProperty(Object.getPrototypeOf(navigator), "userAgentData", {
-    get: () => fakeUserAgentData,
+    get: () => originalUserAgentData,
   });
 }
