@@ -65,4 +65,8 @@ if (originalUserAgentData) {
     enumerable: originalBrandsDescriptor.enumerable,
     configurable: originalBrandsDescriptor.configurable,
   });
+
+  utils.replaceProperty(NavigatorUADataProto, "userAgentData", {
+    get: () => originalUserAgentData,
+  });
 }
