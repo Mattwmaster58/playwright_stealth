@@ -10,16 +10,12 @@ async def test_navigator_user_agent_data_brands_no_headless(hooked_async_chromiu
     await hooked_async_chromium_page.goto("https://example.org")
     brands = await hooked_async_chromium_page.evaluate("navigator.userAgentData.brands")
     for brand in brands:
-        assert brand["brand"] != "HeadlessChrome", (
-            "HeadlessChrome should not be in brands"
-        )
+        assert brand["brand"] != "HeadlessChrome", "HeadlessChrome should not be in brands"
 
 
 async def test_navigator_user_agent_data_disabled():
     """Test that the evasion can be disabled"""
-    async with Stealth(navigator_user_agent_data=False, navigator_user_agent=False).use_async(
-        async_playwright()
-    ) as p:
+    async with Stealth(navigator_user_agent_data=False, navigator_user_agent=False).use_async(async_playwright()) as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
         await page.goto("https://example.org")
@@ -31,9 +27,7 @@ async def test_navigator_user_agent_data_toJSON(hooked_async_chromium_page):
     await hooked_async_chromium_page.goto("https://example.org")
     json_data = await hooked_async_chromium_page.evaluate("navigator.userAgentData.toJSON()")
     for brand in json_data["brands"]:
-        assert brand["brand"] != "HeadlessChrome", (
-            "HeadlessChrome should not be in toJSON output"
-        )
+        assert brand["brand"] != "HeadlessChrome", "HeadlessChrome should not be in toJSON output"
     assert "mobile" in json_data, "toJSON should include mobile property"
     assert "platform" in json_data, "toJSON should include platform property"
 
@@ -43,14 +37,10 @@ async def test_navigator_user_agent_data_getHighEntropyValues(hooked_async_chrom
     await hooked_async_chromium_page.goto("https://example.org")
 
     # Test with brands hint
-    data = await hooked_async_chromium_page.evaluate(
-        "navigator.userAgentData.getHighEntropyValues(['brands'])"
-    )
+    data = await hooked_async_chromium_page.evaluate("navigator.userAgentData.getHighEntropyValues(['brands'])")
     if "brands" in data:
         for brand in data["brands"]:
-            assert brand["brand"] != "HeadlessChrome", (
-                "HeadlessChrome should not be in high entropy brands"
-            )
+            assert brand["brand"] != "HeadlessChrome", "HeadlessChrome should not be in high entropy brands"
 
     # Test with fullVersionList hint
     data = await hooked_async_chromium_page.evaluate(
@@ -58,9 +48,7 @@ async def test_navigator_user_agent_data_getHighEntropyValues(hooked_async_chrom
     )
     if "fullVersionList" in data:
         for brand in data["fullVersionList"]:
-            assert brand["brand"] != "HeadlessChrome", (
-                "HeadlessChrome should not be in fullVersionList"
-            )
+            assert brand["brand"] != "HeadlessChrome", "HeadlessChrome should not be in fullVersionList"
 
 
 async def test_navigator_user_agent_data_preserves_mobile_platform(hooked_async_chromium_page):
@@ -82,4 +70,6 @@ async def test_navigator_user_agent_data_smoketest(hooked_async_chromium_page):
     brands = await hooked_async_chromium_page.evaluate("navigator.userAgentData.brands")
     toJSON = await hooked_async_chromium_page.evaluate("navigator.userAgentData.toJSON()")
     # Test getHighEntropyValues (returns a Promise, need to await in JS)
-    high_entropy = await hooked_async_chromium_page.evaluate("navigator.userAgentData.getHighEntropyValues(['brands', 'mobile', 'platform'])")
+    high_entropy = await hooked_async_chromium_page.evaluate(
+        "navigator.userAgentData.getHighEntropyValues(['brands', 'mobile', 'platform'])"
+    )
