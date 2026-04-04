@@ -1,3 +1,19 @@
+# 2.0.3
+
+- Added `navigator.userAgentData` evasion (PR #28 - thanks [@straywarrior](https://github.com/straywarrior))
+
+# 2.0.2
+
+- Fixed wrapper compatibility with wrapped classes in context managers (PR #27 - thanks [@tobbber](https://github.com/tobbber))
+
+# 2.0.1
+
+- Added guard against double application of stealth (warns and skips duplicate applications)
+- Relaxed playwright dependency to `>=1.40.0`
+- [internal]: use poetry v2+ format for pyproject.tml (PR #23 - thanks [@Rafiot](https://github.com/Rafiot))
+- Added `error_prototype` evasion to override Error.name (PR #22 - thanks [@Rafiot](https://github.com/Rafiot))
+- Added handler variable name randomization in `utils.stripProxyFromErrors` for better stealth (PR #18 - thanks [@Rafiot](https://github.com/Rafiot))
+
 # 2.0.0
 
 - __breaking change__: more consistent naming all around
