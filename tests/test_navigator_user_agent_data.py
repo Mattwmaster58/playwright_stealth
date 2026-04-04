@@ -1,3 +1,5 @@
+import json
+
 from playwright.async_api import async_playwright
 
 from playwright_stealth import Stealth
@@ -15,14 +17,13 @@ async def test_navigator_user_agent_data_brands_no_headless(hooked_async_chromiu
 
 async def test_navigator_user_agent_data_disabled():
     """Test that the evasion can be disabled"""
-    async with Stealth(navigator_user_agent_data=False).use_async(
+    async with Stealth(navigator_user_agent_data=False, navigator_user_agent=False).use_async(
         async_playwright()
     ) as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
         await page.goto("https://example.org")
-        # When disabled, the script shouldn't be injected, so we just verify the page loads
-        assert page.url == "https://example.org/"
+        assert "HeadlessChrome" in json.dumps(await page.evaluate("navigator.userAgentData.toJSON()"))
 
 
 async def test_navigator_user_agent_data_toJSON(hooked_async_chromium_page):
