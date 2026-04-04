@@ -31,3 +31,11 @@ async def hooked_async_page(hooked_async_browser) -> async_api.Page:
 @pytest.fixture
 def hooked_sync_page(request, hooked_async_browser) -> sync_api.Page:
     return hooked_async_browser.new_page()
+
+@pytest.fixture
+async def hooked_async_chromium_page(hooked_async_browser, request) -> async_api.Page:
+    """Fixture that provides a Chromium page, skipping Firefox tests"""
+    browser = hooked_async_browser
+    if browser.browser_type.name == "firefox":
+        pytest.skip("(chromium only test)")
+    return await browser.new_page()
