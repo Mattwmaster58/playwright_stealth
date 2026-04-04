@@ -43,7 +43,9 @@ async def test_iframe_contentWindow(hooked_async_page):
 
 async def test_media_codecs(hooked_async_page):
     await hooked_async_page.goto("http://example.org")
-    a = await hooked_async_page.evaluate("document.createElement('video').canPlayType('audio/x-m4a')")
+    a = await hooked_async_page.evaluate(
+        "document.createElement('video').canPlayType('audio/x-m4a')"
+    )
 
 
 async def test_navigator_hardwareConcurrency(hooked_async_page):
@@ -74,6 +76,13 @@ async def test_navigator_plugins(hooked_async_page):
 async def test_navigator_userAgent(hooked_async_page):
     await hooked_async_page.goto("http://example.org")
     a = await hooked_async_page.evaluate("navigator.userAgent")
+
+
+async def test_navigator_userAgentData(hooked_async_page):
+    # navigator.userAgentData requires a secure context (HTTPS)
+    await hooked_async_page.goto("https://example.org")
+    a = await hooked_async_page.evaluate("navigator.userAgentData")
+    b = await hooked_async_page.evaluate("navigator.userAgentData.brands")
 
 
 async def test_navigator_vendor(hooked_async_page):

@@ -31,7 +31,9 @@ SCRIPTS: Dict[str, str] = {
     "chrome_runtime": from_file("evasions/chrome.runtime.js"),
     "iframe_content_window": from_file("evasions/iframe.contentWindow.js"),
     "media_codecs": from_file("evasions/media.codecs.js"),
-    "navigator_hardware_concurrency": from_file("evasions/navigator.hardwareConcurrency.js"),
+    "navigator_hardware_concurrency": from_file(
+        "evasions/navigator.hardwareConcurrency.js"
+    ),
     "navigator_languages": from_file("evasions/navigator.languages.js"),
     "navigator_permissions": from_file("evasions/navigator.permissions.js"),
     "navigator_platform": from_file("evasions/navigator.platform.js"),
@@ -123,16 +125,27 @@ class Stealth:
         # warn if an override was provided for a disabled option
         self._check_for_disabled_options_overridden(locals())
         # evasion options
-        self.navigator_languages_override: Tuple[str, str] = navigator_languages_override or ("en-US", "en")
+        self.navigator_languages_override: Tuple[str, str] = (
+            navigator_languages_override or ("en-US", "en")
+        )
         self.navigator_platform_override: Optional[str] = navigator_platform_override
-        self.navigator_user_agent_override: Optional[str] = navigator_user_agent_override
+        self.navigator_user_agent_override: Optional[str] = (
+            navigator_user_agent_override
+        )
         self.navigator_vendor_override: str = navigator_vendor_override or None
-        if sec_ch_ua_override is None and self.navigator_user_agent_override is not None:
+        if (
+            sec_ch_ua_override is None
+            and self.navigator_user_agent_override is not None
+        ):
             # we can get sec_ch_ua override for "free" here if we can parse the Chrome version string
-            self.sec_ch_ua_override = self._get_greased_chrome_sec_ua_ch(self.navigator_user_agent_override)
+            self.sec_ch_ua_override = self._get_greased_chrome_sec_ua_ch(
+                self.navigator_user_agent_override
+            )
         else:
             self.sec_ch_ua_override: Optional[str] = sec_ch_ua_override
-        self.webgl_renderer_override: str = webgl_renderer_override or "Intel Iris OpenGL Engine"
+        self.webgl_renderer_override: str = (
+            webgl_renderer_override or "Intel Iris OpenGL Engine"
+        )
         self.webgl_vendor_override: str = webgl_vendor_override or "Intel Inc."
         # other options
         self.init_scripts_only: bool = init_scripts_only
@@ -220,7 +233,9 @@ class Stealth:
             return True
         return False
 
-    def use_async(self, ctx: async_api.PlaywrightContextManager) -> AsyncWrappingContextManager:
+    def use_async(
+        self, ctx: async_api.PlaywrightContextManager
+    ) -> AsyncWrappingContextManager:
         """
         Instruments the playwright context manager.
         Any browser connected to or any page created with any method from
@@ -231,7 +246,9 @@ class Stealth:
         """
         return AsyncWrappingContextManager(self, ctx)
 
-    def use_sync(self, ctx: sync_api.PlaywrightContextManager) -> SyncWrappingContextManager:
+    def use_sync(
+        self, ctx: sync_api.PlaywrightContextManager
+    ) -> SyncWrappingContextManager:
         """
         Instruments the playwright context manager.
         Any browser connected to or any page created with any method from
@@ -242,17 +259,27 @@ class Stealth:
         """
         return SyncWrappingContextManager(self, ctx)
 
-    async def apply_stealth_async(self, page_or_context: Union[async_api.Page, async_api.BrowserContext]) -> None:
-        if len(self.script_payload) > 0 and not self.warn_if_stealth_applied(page_or_context):
+    async def apply_stealth_async(
+        self, page_or_context: Union[async_api.Page, async_api.BrowserContext]
+    ) -> None:
+        if len(self.script_payload) > 0 and not self.warn_if_stealth_applied(
+            page_or_context
+        ):
             await page_or_context.add_init_script(self.script_payload)
             setattr(page_or_context, self._STEALTH_APPLIED_KEY, True)
 
-    def apply_stealth_sync(self, page_or_context: Union[sync_api.Page, sync_api.BrowserContext]) -> None:
-        if len(self.script_payload) > 0 and not self.warn_if_stealth_applied(page_or_context):
+    def apply_stealth_sync(
+        self, page_or_context: Union[sync_api.Page, sync_api.BrowserContext]
+    ) -> None:
+        if len(self.script_payload) > 0 and not self.warn_if_stealth_applied(
+            page_or_context
+        ):
             page_or_context.add_init_script(self.script_payload)
             setattr(page_or_context, self._STEALTH_APPLIED_KEY, True)
 
-    def hook_playwright_context(self, ctx: Union[async_api.Playwright, sync_api.Playwright]) -> None:
+    def hook_playwright_context(
+        self, ctx: Union[async_api.Playwright, sync_api.Playwright]
+    ) -> None:
         """
         Given a Playwright context object, hooks all the browser type object methods that return a Browser object.
         Can be used with sync and async methods contexts
@@ -260,10 +287,14 @@ class Stealth:
         browser_class_name = sync_api.Browser.__name__
         for browser_type in (ctx.chromium, ctx.firefox, ctx.webkit):
             chromium_mode = browser_type.name == "chromium"
-            for name, hooked_method in inspect.getmembers(browser_type, predicate=inspect.ismethod):
+            for name, hooked_method in inspect.getmembers(
+                browser_type, predicate=inspect.ismethod
+            ):
                 # todo: ctx.browser.launch_persistent_context
                 if hooked_method.__annotations__.get("return") == browser_class_name:
-                    hooked_method = self._generate_hooked_method_that_returns_browser(hooked_method, chromium_mode)
+                    hooked_method = self._generate_hooked_method_that_returns_browser(
+                        hooked_method, chromium_mode
+                    )
                     setattr(browser_type, name, hooked_method)
 
     def _kwargs_with_patched_cli_arg(
@@ -278,14 +309,22 @@ class Stealth:
             if chromium_mode and not self.init_scripts_only:
                 new_cli_args = new_kwargs.get("args", args_parameter.default)
                 if self.navigator_webdriver:
-                    new_cli_args = self._patch_blink_features_cli_args(new_cli_args or [])
+                    new_cli_args = self._patch_blink_features_cli_args(
+                        new_cli_args or []
+                    )
                 if self.navigator_languages:
-                    languages_cli_flag = f"--accept-lang={','.join(self.navigator_languages_override)}"
-                    new_cli_args = self._patch_cli_arg(new_cli_args or [], languages_cli_flag)
+                    languages_cli_flag = (
+                        f"--accept-lang={','.join(self.navigator_languages_override)}"
+                    )
+                    new_cli_args = self._patch_cli_arg(
+                        new_cli_args or [], languages_cli_flag
+                    )
                 new_kwargs["args"] = new_cli_args
         return new_kwargs
 
-    def _generate_hooked_method_that_returns_browser(self, method: Callable, chromium_mode: bool):
+    def _generate_hooked_method_that_returns_browser(
+        self, method: Callable, chromium_mode: bool
+    ):
         async def async_hooked_method(*args, **kwargs) -> async_api.Browser:
             browser = await method(
                 *args,
@@ -306,11 +345,17 @@ class Stealth:
             return async_hooked_method
         return sync_hooked_method
 
-    def _generate_hooked_new_context(self, new_context_method: Callable, new_page_method: Callable) -> Callable:
+    def _generate_hooked_new_context(
+        self, new_context_method: Callable, new_page_method: Callable
+    ) -> Callable:
         async def hooked_new_context_async(*args, **kwargs):
             context = await new_context_method(
                 *args,
-                **(await self._kwargs_new_page_context_with_patches_async(new_page_method, kwargs)),
+                **(
+                    await self._kwargs_new_page_context_with_patches_async(
+                        new_page_method, kwargs
+                    )
+                ),
             )
             await self.apply_stealth_async(context)
             return context
@@ -318,7 +363,11 @@ class Stealth:
         def hooked_browser_method_sync(*args, **kwargs):
             context = new_context_method(
                 *args,
-                **(self._kwargs_new_page_context_with_patches_sync(new_page_method, kwargs)),
+                **(
+                    self._kwargs_new_page_context_with_patches_sync(
+                        new_page_method, kwargs
+                    )
+                ),
             )
             self.apply_stealth_sync(context)
             return context
@@ -327,7 +376,9 @@ class Stealth:
             return hooked_new_context_async
         return hooked_browser_method_sync
 
-    def _generate_hooked_new_page(self, new_page_method: Callable, patch_kwargs: bool) -> Callable:
+    def _generate_hooked_new_page(
+        self, new_page_method: Callable, patch_kwargs: bool
+    ) -> Callable:
         """
         Returns a hooked method (async or sync) for new_page.
         *args and **kwargs even though these methods may not take any number of arguments,
@@ -339,7 +390,9 @@ class Stealth:
 
         async def hooked_new_page_async(*args, **kwargs):
             kwargs = (
-                await self._kwargs_new_page_context_with_patches_async(new_page_method, kwargs)
+                await self._kwargs_new_page_context_with_patches_async(
+                    new_page_method, kwargs
+                )
                 if patch_kwargs
                 else kwargs
             )
@@ -349,7 +402,9 @@ class Stealth:
 
         def hooked_new_page_sync(*args, **kwargs):
             kwargs = (
-                self._kwargs_new_page_context_with_patches_sync(new_page_method, kwargs) if patch_kwargs else kwargs
+                self._kwargs_new_page_context_with_patches_sync(new_page_method, kwargs)
+                if patch_kwargs
+                else kwargs
             )
             page = new_page_method(*args, **kwargs)
             self.apply_stealth_sync(page)
@@ -384,16 +439,24 @@ class Stealth:
 
         async def get_user_agent_and_sec_ch_ua_async() -> Tuple[str, str]:
             temp_page: Optional[async_api.Page]
-            stealth_user_agent = getattr(browser_instance, self._USER_AGENT_OVERRIDE_PIGGYBACK_KEY, None)
-            sec_ch_ua = getattr(browser_instance, self._SEC_CH_UA_OVERRIDE_PIGGYBACK_KEY, None)
+            stealth_user_agent = getattr(
+                browser_instance, self._USER_AGENT_OVERRIDE_PIGGYBACK_KEY, None
+            )
+            sec_ch_ua = getattr(
+                browser_instance, self._SEC_CH_UA_OVERRIDE_PIGGYBACK_KEY, None
+            )
             if stealth_user_agent is None or sec_ch_ua is None:
                 temp_page = await unpatched_new_page()
-                stealth_user_agent = (await temp_page.evaluate("navigator.userAgent")).replace(
-                    "HeadlessChrome", "Chrome"
+                stealth_user_agent = (
+                    await temp_page.evaluate("navigator.userAgent")
+                ).replace("HeadlessChrome", "Chrome")
+                await temp_page.close(
+                    reason="playwright_stealth internal temp utility page"
                 )
-                await temp_page.close(reason="playwright_stealth internal temp utility page")
                 sec_ch_ua = self._get_greased_chrome_sec_ua_ch(stealth_user_agent)
-                setattr(browser_instance, self._SEC_CH_UA_OVERRIDE_PIGGYBACK_KEY, sec_ch_ua)
+                setattr(
+                    browser_instance, self._SEC_CH_UA_OVERRIDE_PIGGYBACK_KEY, sec_ch_ua
+                )
                 setattr(
                     browser_instance,
                     self._USER_AGENT_OVERRIDE_PIGGYBACK_KEY,
@@ -405,13 +468,22 @@ class Stealth:
         if self.navigator_user_agent and packed_kwargs.get("user_agent") is None:
             resolved_user_agent_override = self.navigator_user_agent_override
             if resolved_user_agent_override is None and is_chromium:
-                resolved_user_agent_override, _ = await get_user_agent_and_sec_ch_ua_async()
+                (
+                    resolved_user_agent_override,
+                    _,
+                ) = await get_user_agent_and_sec_ch_ua_async()
             new_kwargs["user_agent"] = resolved_user_agent_override
         extra_http_headers = packed_kwargs.get("extra_http_headers", {})
-        if self.sec_ch_ua and CaseInsensitiveDict(extra_http_headers).get("sec-ch-ua") is None:
+        if (
+            self.sec_ch_ua
+            and CaseInsensitiveDict(extra_http_headers).get("sec-ch-ua") is None
+        ):
             resolved_sec_ch_ua_override = self.sec_ch_ua_override
             if resolved_sec_ch_ua_override is None and is_chromium:
-                _, resolved_sec_ch_ua_override = await get_user_agent_and_sec_ch_ua_async()
+                (
+                    _,
+                    resolved_sec_ch_ua_override,
+                ) = await get_user_agent_and_sec_ch_ua_async()
             if resolved_sec_ch_ua_override is not None:
                 extra_http_headers["sec-ch-ua"] = resolved_sec_ch_ua_override
                 new_kwargs["extra_http_headers"] = extra_http_headers
@@ -431,14 +503,22 @@ class Stealth:
 
         def get_user_agent_and_sec_ch_ua_sync() -> Tuple[str, str]:
             temp_page: Optional[sync_api.Page]
-            stealth_user_agent = getattr(browser_instance, self._USER_AGENT_OVERRIDE_PIGGYBACK_KEY, None)
-            sec_ch_ua = getattr(browser_instance, self._SEC_CH_UA_OVERRIDE_PIGGYBACK_KEY, None)
+            stealth_user_agent = getattr(
+                browser_instance, self._USER_AGENT_OVERRIDE_PIGGYBACK_KEY, None
+            )
+            sec_ch_ua = getattr(
+                browser_instance, self._SEC_CH_UA_OVERRIDE_PIGGYBACK_KEY, None
+            )
             if stealth_user_agent is None or sec_ch_ua is None:
                 temp_page = unpatched_new_page()
-                stealth_user_agent = temp_page.evaluate("navigator.userAgent").replace("HeadlessChrome", "Chrome")
+                stealth_user_agent = temp_page.evaluate("navigator.userAgent").replace(
+                    "HeadlessChrome", "Chrome"
+                )
                 sec_ch_ua = self._get_greased_chrome_sec_ua_ch(stealth_user_agent)
                 temp_page.close(reason="playwright_stealth internal temp utility page")
-                setattr(browser_instance, self._SEC_CH_UA_OVERRIDE_PIGGYBACK_KEY, sec_ch_ua)
+                setattr(
+                    browser_instance, self._SEC_CH_UA_OVERRIDE_PIGGYBACK_KEY, sec_ch_ua
+                )
                 setattr(
                     browser_instance,
                     self._USER_AGENT_OVERRIDE_PIGGYBACK_KEY,
@@ -453,7 +533,10 @@ class Stealth:
                 resolved_user_agent_override, _ = get_user_agent_and_sec_ch_ua_sync()
             new_kwargs["user_agent"] = resolved_user_agent_override
         extra_http_headers = packed_kwargs.get("extra_http_headers", {})
-        if self.sec_ch_ua and CaseInsensitiveDict(extra_http_headers).get("sec-ch-ua") is None:
+        if (
+            self.sec_ch_ua
+            and CaseInsensitiveDict(extra_http_headers).get("sec-ch-ua") is None
+        ):
             resolved_sec_ch_ua_override = self.sec_ch_ua_override
             if resolved_sec_ch_ua_override is None and is_chromium:
                 _, resolved_sec_ch_ua_override = get_user_agent_and_sec_ch_ua_sync()
@@ -463,10 +546,16 @@ class Stealth:
 
         return new_kwargs
 
-    def _reassign_new_page_new_context(self, browser: Union[async_api.Browser, sync_api.Browser]) -> None:
+    def _reassign_new_page_new_context(
+        self, browser: Union[async_api.Browser, sync_api.Browser]
+    ) -> None:
         if isinstance(browser, (async_api.Browser, sync_api.Browser)):
-            browser.new_context = self._generate_hooked_new_context(browser.new_context, browser.new_page)
-            browser.new_page = self._generate_hooked_new_page(browser.new_page, patch_kwargs=True)
+            browser.new_context = self._generate_hooked_new_context(
+                browser.new_context, browser.new_page
+            )
+            browser.new_page = self._generate_hooked_new_page(
+                browser.new_page, patch_kwargs=True
+            )
         else:
             raise TypeError(f"unexpected type from function (bug): returned {browser}")
 
@@ -490,7 +579,9 @@ class Stealth:
         """
         greased_versions = [8, 99, 24]
         greasy_chars = " ():-./;=?_"
-        greasy_brand = f"Not{random.choice(greasy_chars)}A{random.choice(greasy_chars)}Brand"
+        greasy_brand = (
+            f"Not{random.choice(greasy_chars)}A{random.choice(greasy_chars)}Brand"
+        )
         version = re.search(r"Chrome/(\d+)[\d.]+", user_agent, re.IGNORECASE)
         if len(version.groups()) == 0:
             return None
@@ -520,7 +611,9 @@ class Stealth:
         else:  # no break
             # the user has specified no extra blink features disabled,
             # so no need to be careful how we modify the command line
-            new_args.append(f"{disable_blink_features_prefix}{automation_controlled_feature_name}")
+            new_args.append(
+                f"{disable_blink_features_prefix}{automation_controlled_feature_name}"
+            )
         return new_args
 
     @staticmethod
@@ -549,7 +642,10 @@ class Stealth:
     @staticmethod
     def _check_for_disabled_options_overridden(packed_kwargs: Dict[str, Any]) -> None:
         for key in ALL_EVASIONS_DISABLED_KWARGS.keys():
-            if not packed_kwargs.get(key) and packed_kwargs.get(f"{key}_override") is not None:
+            if (
+                not packed_kwargs.get(key)
+                and packed_kwargs.get(f"{key}_override") is not None
+            ):
                 warnings.warn(
                     f"{key} is False, but an override ({key}_override) was provided, "
                     f"which is probably not what you intended to do",
