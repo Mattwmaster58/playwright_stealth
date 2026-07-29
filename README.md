@@ -8,6 +8,10 @@ proof-of-concept starting point.
 I've merged some of the outstanding PRs, added some features, and cleaned up the API surface. See
 the [changelog](https://github.com/Mattwmaster58/playwright_stealth/blob/main/CHANGELOG.md). The latest major version includes breaking changes.
 
+If you need to go past proof-of-concept - actual canvas/WebGL/font/audio fingerprint
+consistency rather than JS-level property patches - [invisible_playwright](https://github.com/feder-cr/invisible_playwright)
+does that at the Firefox source level.
+
 ## Install
 
 Install from PyPi:
